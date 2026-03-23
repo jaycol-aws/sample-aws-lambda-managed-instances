@@ -1,3 +1,6 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
+
 // Lambda Managed Instances Calculator Logic (v2)
 // Recalibrated with Zach's Elevator savings contribution data
 
