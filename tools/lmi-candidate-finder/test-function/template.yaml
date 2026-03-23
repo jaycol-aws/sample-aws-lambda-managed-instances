@@ -13,13 +13,9 @@ Resources:
       Timeout: 30
       Architectures:
         - arm64
-      FunctionUrlConfig:
-        AuthType: NONE
 
 Outputs:
   FunctionName:
     Value: !Ref LmiTestFunction
-  FunctionUrl:
-    Value: !GetAtt LmiTestFunctionUrl.FunctionUrl
   FunctionArn:
     Value: !GetAtt LmiTestFunction.Arn
