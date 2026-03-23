@@ -33,7 +33,28 @@ python lmi_candidate_finder.py --region us-east-1 --function my-api \
 
 ## How It Works
 
-The tool performs four steps for each Lambda function:
+The tool supports two modes designed for a two-step workflow:
+
+### Step 1: Scan — Identify candidates across your account
+
+```bash
+python lmi_candidate_finder.py --region us-east-1
+```
+
+Scan mode lists all Lambda functions, filters out unsuitable ones (wrong runtime, low concurrency, irregular traffic), and ranks the rest by LMI candidacy score. Use this to get a broad view of which functions are worth investigating. The default `io-heavy` workload type and configured memory are used for initial estimates — good enough for triage, not for final decisions.
+
+### Step 2: Function — Deep dive into specific candidates
+
+```bash
+python lmi_candidate_finder.py --region us-east-1 --function payment-api \
+    --memory-per-exec 256 --workload-type balanced
+```
+
+Once you've identified promising candidates from the scan, analyze them individually with accurate inputs. Provide the actual memory your function uses at runtime (`--memory-per-exec`) and the correct workload type (`--workload-type`) for that specific function. This produces a precise capacity plan and savings estimate you can use for planning.
+
+### Under the hood
+
+For each function, the tool:
 
 1. **Filter** — Skip functions with unsupported runtimes, insufficient invocation volume, low/no concurrency, or irregular traffic patterns
 2. **Score** — Assign a 0–100 candidacy score based on invocation volume, duration, concurrency, memory, provisioned concurrency, and throttle history
