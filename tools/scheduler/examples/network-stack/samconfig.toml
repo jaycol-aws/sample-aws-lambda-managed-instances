@@ -1,0 +1,6 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "lmi-example-network"
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = true

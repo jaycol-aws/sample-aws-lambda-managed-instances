@@ -1,0 +1,4 @@
+[global]
+disable = ["MD013", "MD033"]
+include = ["**/*.md", "**/*.markdown"]
+exclude = ["node_modules/**", "target/**"]
