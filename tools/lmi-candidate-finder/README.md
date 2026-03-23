@@ -120,14 +120,19 @@ For each candidate, the tool runs the full LMI capacity formula:
 
 The estimate compares Standard Lambda vs LMI across four pricing tiers:
 
-| Tier | LMI/EC2 Discount | Lambda Discount |
-|------|------------------|-----------------|
-| On-Demand | 0% | 0% |
-| Compute Savings Plan (1yr) | 50% | 17% |
-| EC2 Instance Savings Plan | 72% | 0% |
-| Reserved Instances (3yr) | 75% | 0% |
+| Tier | Source | Applies To |
+|------|--------|------------|
+| On-Demand | AWS Pricing API | Baseline comparison |
+| Compute Savings Plan (1yr No Upfront) | AWS Savings Plans API | EC2 + Lambda compute |
+| EC2 Instance Savings Plan (1yr No Upfront) | AWS Savings Plans API | EC2 only |
+| Reserved Instances (3yr All Upfront Standard) | AWS Pricing API (Reserved terms) | EC2 only |
 
-**Note:** The 15% LMI management fee is always calculated on the On-Demand EC2 price, regardless of savings plan discounts.
+Discount percentages are fetched live per instance type and region — not hardcoded. The tier labels in the output show the actual discount percentage (e.g., "Compute SP 1yr (EC2 -28.3%, Λ -11.8%)").
+
+**Notes:**
+- The 15% LMI management fee is always calculated on the On-Demand EC2 price, regardless of discounts
+- Standard Lambda cost subtracts the free tier (1M requests + 400K GB-seconds/month)
+- Lambda Compute SP rate is fetched from the Savings Plans API for the selected region
 
 ## Memory Override
 
@@ -200,8 +205,8 @@ python test_lmi_candidate_finder.py
 Test scenarios:
 | Test | Scenario | Expected |
 |------|----------|----------|
-| 1 | High-volume Java API, 50M inv/month, 2s duration, 100 concurrency, provisioned | STRONG (score 100) |
-| 2 | Python 3.12, 2M inv/month, 150ms duration, 8 concurrency | MODERATE (score ~37) |
+| 1 | High-volume Java API, 50M inv/month, 2s duration, 100 concurrency, provisioned | STRONG (score 100), RI tier cheaper than OD |
+| 2 | Python 3.12, 2M inv/month, 150ms duration, 8 concurrency, x86_64 | MODERATE (score ~37), x86 instance selected |
 | 3 | High volume but peak concurrency = 1 | Skipped (low concurrency) |
 | 4 | High volume + concurrency but only 10% hours active | Skipped (irregular traffic) |
 | 5 | Ruby, Go, custom runtimes | Filtered (returns None) |
@@ -209,6 +214,10 @@ Test scenarios:
 | 7 | Same function as io-heavy vs cpu-heavy | Same score, different cost |
 | 8 | Memory override (2048 configured, 200 actual) | Better packing with override |
 | 9 | Low concurrency + provisioned concurrency | Not skipped (bypass) |
+| 10 | 1M inv/month within free tier | Standard Lambda ≈ $0 |
+| 11 | days=30 (no extrapolation) | Monthly = raw total |
+| 12 | Empty EC2 pricing | savings = None (graceful) |
+| 13 | Upgradeable runtime, minimal signals | Score floored at 0 |
 
 ### Integration test with a real Lambda function
 
@@ -275,6 +284,7 @@ CloudWatch Metrics ────→ Invocations, Duration, Concurrency, Throttles
   - `lambda:ListFunctions`, `lambda:GetFunction`, `lambda:ListProvisionedConcurrencyConfigs`
   - `cloudwatch:GetMetricStatistics`
   - `pricing:GetProducts` (read-only, fetches public pricing data)
+  - `savingsplans:DescribeSavingsPlansOfferingRates` (read-only, fetches SP rates)
 
 ## Supported Regions
 
