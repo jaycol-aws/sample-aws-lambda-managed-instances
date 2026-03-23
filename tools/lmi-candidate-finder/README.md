@@ -69,6 +69,8 @@ The concurrency per vCPU is further capped by the runtime limit (Python: 16, Nod
 
 **How to choose:** If your function spends most of its time waiting for network/IO responses, use `io-heavy`. If it's doing sustained computation (loops, math, encoding), use `cpu-heavy`. When in doubt, `balanced` is a safe middle ground.
 
+**Note:** In scan-all mode, the workload type applies uniformly to every function. For accounts with mixed workloads (e.g., IO-heavy APIs and CPU-heavy processors), analyze high-value functions individually with the `--function` flag and appropriate `--workload-type`.
+
 ## Scoring
 
 Each function receives a 0–100 candidacy score:
@@ -140,7 +142,7 @@ Using the actual memory improves estimate accuracy because:
 # Look for "Max Memory Used" in REPORT lines
 aws logs filter-log-events --log-group-name /aws/lambda/my-func \
     --filter-pattern "REPORT" --limit 10 \
-    --query 'events[].message' --output text | grep -oP 'Max Memory Used: \K\d+'
+    --query 'events[].message' --output text | grep -o 'Max Memory Used: [0-9]*'
 
 # Use the actual value
 python lmi_candidate_finder.py --region us-east-1 --function my-func --memory-per-exec 200

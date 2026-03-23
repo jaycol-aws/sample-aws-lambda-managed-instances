@@ -77,6 +77,11 @@ INSTANCE_SPECS = {
     "m7g.xlarge":  {"vcpus": 4,  "memory_gb": 16,  "ratio": 4},
     "m7g.2xlarge": {"vcpus": 8,  "memory_gb": 32,  "ratio": 4},
     "r7g.xlarge":  {"vcpus": 4,  "memory_gb": 32,  "ratio": 8},
+    # x86 equivalents for non-Graviton workloads
+    "c7i.xlarge":  {"vcpus": 4,  "memory_gb": 8,   "ratio": 2},
+    "c7i.2xlarge": {"vcpus": 8,  "memory_gb": 16,  "ratio": 2},
+    "m7i.xlarge":  {"vcpus": 4,  "memory_gb": 16,  "ratio": 4},
+    "m7i.2xlarge": {"vcpus": 8,  "memory_gb": 32,  "ratio": 4},
 }
 
 # Savings plan discounts
@@ -280,11 +285,18 @@ def lmi_capacity_plan(runtime_key, memory_per_exec_mb, peak_concurrency,
 
 
 def pick_best_instance(runtime_key, memory_per_exec_mb, peak_concurrency,
-                       pricing, workload_type="io-heavy"):
-    """Try each instance type and pick the one with lowest on-demand LMI cost."""
+                       pricing, workload_type="io-heavy", arch="arm64"):
+    """Try each instance type and pick the one with lowest on-demand LMI cost.
+    Filters to Graviton (g) instances for arm64, Intel (i) for x86_64."""
     best = None
     for itype in INSTANCE_SPECS:
         if itype not in pricing["ec2"]:
+            continue
+        # Match instance family to architecture
+        is_graviton = "g." in itype  # c7g, m7g, r7g
+        if arch == "arm64" and not is_graviton:
+            continue
+        if arch == "x86_64" and is_graviton:
             continue
         plan = lmi_capacity_plan(runtime_key, memory_per_exec_mb, peak_concurrency,
                                  itype, workload_type)
@@ -314,7 +326,7 @@ def estimate_savings(monthly_invocations, avg_duration_sec, memory_per_exec_mb,
 
     # LMI capacity plan
     best = pick_best_instance(runtime_key, memory_per_exec_mb, peak_concurrency,
-                              pricing, workload_type)
+                              pricing, workload_type, arch)
     if not best:
         return None
     inst_price = pricing["ec2"][best["instance_type"]]

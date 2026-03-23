@@ -25,6 +25,8 @@ MOCK_PRICING = {
         "c7g.xlarge": 0.1450, "c7g.2xlarge": 0.2900,
         "m7g.xlarge": 0.1632, "m7g.2xlarge": 0.3264,
         "r7g.xlarge": 0.2134,
+        "c7i.xlarge": 0.1785, "c7i.2xlarge": 0.3570,
+        "m7i.xlarge": 0.2016, "m7i.2xlarge": 0.4032,
     },
     "lambda": {
         "gbsec_x86": 0.0000166667,
