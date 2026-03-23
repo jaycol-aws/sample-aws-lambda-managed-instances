@@ -21,6 +21,7 @@ AWS Lambda Managed Instances (LMI) runs Lambda functions on longer-lived AWS-man
 ### Tools
 
 - **[LMI Pricing Calculator](https://aws-samples.github.io/sample-aws-lambda-managed-instances/)** - Interactive cost calculator for comparing AWS Lambda Managed Instances pricing
+- **[LMI Candidate Finder](./tools/lmi-candidate-finder/)** - Scan your Lambda functions and identify candidates for LMI based on invocation patterns, duration, and runtime compatibility
 
 ## Getting Started
 

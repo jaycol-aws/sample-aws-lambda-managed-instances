@@ -1,0 +1,25 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Test Lambda for LMI Candidate Finder validation
+
+Resources:
+  LmiTestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: lmi-candidate-test
+      Handler: app.handler
+      Runtime: python3.13
+      MemorySize: 512
+      Timeout: 30
+      Architectures:
+        - arm64
+      FunctionUrlConfig:
+        AuthType: NONE
+
+Outputs:
+  FunctionName:
+    Value: !Ref LmiTestFunction
+  FunctionUrl:
+    Value: !GetAtt LmiTestFunctionUrl.FunctionUrl
+  FunctionArn:
+    Value: !GetAtt LmiTestFunction.Arn
