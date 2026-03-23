@@ -1,110 +1,268 @@
 # LMI Candidate Finder
 
-Scans Lambda functions in your AWS account and identifies candidates for [Lambda Managed Instances](https://aws.amazon.com/lambda/lambda-managed-instances/) based on invocation patterns, duration, concurrency, memory, and runtime compatibility. Produces per-function savings estimates using live pricing from the AWS Pricing API.
+Scans Lambda functions in your AWS account and identifies candidates for [AWS Lambda Managed Instances (LMI)](https://aws.amazon.com/lambda/lambda-managed-instances/) based on invocation patterns, duration, concurrency, memory, and runtime compatibility. Produces per-function savings estimates using live pricing from the AWS Pricing API.
+
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [How It Works](#how-it-works)
+- [Parameters](#parameters)
+- [Workload Types](#workload-types)
+- [Scoring](#scoring)
+- [Disqualifiers](#disqualifiers)
+- [Savings Estimate](#savings-estimate)
+- [Memory Override](#memory-override)
+- [Examples](#examples)
+- [Testing](#testing)
+- [Architecture](#architecture)
+- [Requirements](#requirements)
 
 ## Quick Start
 
 ```bash
+# Install dependency
+pip install boto3
+
 # Scan all functions in a region
 python lmi_candidate_finder.py --region us-east-1
-
-# Scan multiple regions
-python lmi_candidate_finder.py --region us-east-1,us-west-2,eu-west-1
 
 # Analyze a single function with known memory usage
 python lmi_candidate_finder.py --region us-east-1 --function my-api \
     --memory-per-exec 200 --workload-type balanced
-
-# CPU-heavy Java function
-python lmi_candidate_finder.py --region us-east-1 --function my-processor \
-    --memory-per-exec 512 --workload-type cpu-heavy
-
-# JSON output for programmatic use
-python lmi_candidate_finder.py --region us-east-1 --json
 ```
+
+## How It Works
+
+The tool performs four steps for each Lambda function:
+
+1. **Filter** — Skip functions with unsupported runtimes, insufficient invocation volume, low/no concurrency, or irregular traffic patterns
+2. **Score** — Assign a 0–100 candidacy score based on invocation volume, duration, concurrency, memory, provisioned concurrency, and throttle history
+3. **Estimate** — Run the LMI capacity formula (same as the [Pricing Calculator](https://aws-samples.github.io/sample-aws-lambda-managed-instances/)) to determine instance count, packing efficiency, and cost comparison across four pricing tiers
+4. **Report** — Display ranked candidates with savings estimates, or output as JSON for programmatic use
+
+Pricing is fetched live from the [AWS Pricing API](https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/price-changes.html) for the selected region — no hardcoded prices.
 
 ## Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--region` | us-east-1 | AWS region(s), comma-separated for multi-region scan |
-| `--function` | *(all)* | Analyze a single function by name |
-| `--memory-per-exec` | *(configured)* | Actual memory used per execution in MB |
-| `--workload-type` | io-heavy | CPU profile: `io-heavy`, `balanced`, or `cpu-heavy` |
-| `--days` | 14 | Days of CloudWatch data to analyze |
-| `--min-invocations` | 1,000,000 | Minimum monthly invocations to consider |
-| `--profile` | *(default)* | AWS CLI profile name |
-| `--json` | false | Output as JSON |
+| `--region` | `us-east-1` | AWS region(s), comma-separated for multi-region scan |
+| `--function` | *(scan all)* | Analyze a single function by name instead of scanning all |
+| `--memory-per-exec` | *(configured MemorySize)* | Actual memory used per execution in MB (see [Memory Override](#memory-override)) |
+| `--workload-type` | `io-heavy` | CPU profile: `io-heavy`, `balanced`, or `cpu-heavy` (see [Workload Types](#workload-types)) |
+| `--days` | `14` | Days of CloudWatch history to analyze |
+| `--min-invocations` | `1,000,000` | Minimum projected monthly invocations to consider a function |
+| `--profile` | *(default)* | AWS CLI named profile |
+| `--json` | `false` | Output results as JSON (suppresses progress output) |
 
 ## Workload Types
 
-The workload type determines how many concurrent invocations can sustainably run per vCPU:
+The workload type determines how many concurrent invocations can sustainably run per vCPU. This directly affects the LMI capacity formula — choosing the wrong type will over- or under-estimate instance requirements.
 
-| Type | CPU per Invocation | Concurrency per vCPU | Best For |
-|------|-------------------|---------------------|----------|
-| `io-heavy` | 12.5% | Up to 8 | API proxies, queue consumers, DB queries |
-| `balanced` | 25% | Up to 4 | Mixed IO and compute, web backends |
-| `cpu-heavy` | 50% | Up to 2 | Data processing, ML inference, image/video encoding |
+| Type | CPU per Invocation | Max Concurrency per vCPU | Best For |
+|------|-------------------|--------------------------|----------|
+| `io-heavy` | 12.5% | 8 | API proxies, queue consumers, database queries, HTTP calls |
+| `balanced` | 25% | 4 | Mixed IO and compute, web backends, light data transforms |
+| `cpu-heavy` | 50% | 2 | Data processing, ML inference, image/video encoding, crypto |
 
-## What It Checks
+The concurrency per vCPU is further capped by the runtime limit (Python: 16, Node.js: 64, Java: 32, .NET: 32) and the memory-fitting limit (how many invocations fit in one vCPU's memory budget).
 
-| Signal | Weight | Why |
-|--------|--------|-----|
-| Monthly invocations | 30 pts | LMI shines at high volume (no per-duration charge) |
-| Average duration | 25 pts | Longer durations = more savings vs per-GB-second pricing |
-| Peak concurrency | 20 pts | Multi-concurrency per environment is LMI's key advantage |
-| Provisioned concurrency | 15 pts | Already paying for warm capacity — LMI replaces this |
-| Memory allocation | 10 pts | Higher memory = higher per-invocation cost on standard Lambda |
-| Throttle history | 5 pts | Throttling suggests capacity constraints LMI can address |
-| Runtime compatibility | -5 pts | Penalty if runtime upgrade needed |
-
-## Disqualifiers
-
-Functions are automatically skipped (not scored) if they have:
-- **Low/no concurrency** — peak concurrent executions < 2 (LMI needs sustained concurrent load)
-- **Irregular traffic** — active in fewer than 25% of hours in the analysis period (LMI doesn't scale to zero)
+**How to choose:** If your function spends most of its time waiting for network/IO responses, use `io-heavy`. If it's doing sustained computation (loops, math, encoding), use `cpu-heavy`. When in doubt, `balanced` is a safe middle ground.
 
 ## Scoring
 
-- 🟢 **STRONG** (60+): High-confidence LMI candidate
-- 🟡 **MODERATE** (35-59): Worth evaluating with the cost calculator
-- 🟠 **WEAK** (15-34): Marginal benefit, review case-by-case
-- 🔴 **NOT RECOMMENDED** (<15): Standard Lambda is likely better
+Each function receives a 0–100 candidacy score:
+
+| Signal | Points | Criteria |
+|--------|--------|----------|
+| Monthly invocations | 0 / 15 / 30 | < 1M / 1M–10M / ≥ 10M |
+| Average duration | 0 / 12 / 25 | < 100ms / 100ms–1s / ≥ 1s |
+| Peak concurrency | 0 / 10 / 20 | < 5 / 5–50 / ≥ 50 |
+| Memory allocation | 0 / 5 / 10 | < 256 MB / 256–512 MB / ≥ 512 MB |
+| Provisioned concurrency | 0 / 15 | No / Yes (LMI replaces this) |
+| Throttle history | 0 / 5 | No throttles / Has throttles |
+| Runtime upgrade needed | 0 / -5 | Ready / Needs upgrade |
+
+**Rating thresholds:**
+
+| Rating | Score | Meaning |
+|--------|-------|---------|
+| 🟢 STRONG | 60+ | High-confidence LMI candidate — run the Pricing Calculator for detailed planning |
+| 🟡 MODERATE | 35–59 | Worth evaluating — may benefit from LMI depending on workload type and commitment |
+| 🟠 WEAK | 15–34 | Marginal benefit — review case-by-case |
+| 🔴 NOT RECOMMENDED | < 15 | Standard Lambda is likely more cost-effective |
+
+## Disqualifiers
+
+Functions are automatically skipped (not scored) if they meet any of these criteria:
+
+| Condition | Threshold | Rationale |
+|-----------|-----------|-----------|
+| Low/no concurrency | Peak concurrent executions < 2 | LMI's multi-concurrency model requires sustained parallel invocations |
+| Irregular traffic | Active in < 25% of hours over the analysis period | LMI doesn't scale to zero — you pay for instances 24/7 |
+| Unsupported runtime | Not Python, Node.js, Java, or .NET | LMI only supports these runtime families |
+| Insufficient volume | < 100K projected monthly invocations | Too low to justify analysis |
+
+**Exception:** Functions with provisioned concurrency bypass the low-concurrency disqualifier, since they're already paying for warm capacity that LMI can replace.
 
 ## Savings Estimate
 
-For each candidate, the finder runs the LMI capacity formula to determine:
-- Best instance type (from c7g, m7g, r7g families)
-- Instance count, environments per instance, concurrency per environment
-- Cost comparison across four pricing tiers (On-Demand, Compute SP, EC2 SP, 3yr RI)
+For each candidate, the tool runs the full LMI capacity formula:
 
-Pricing is fetched live from the AWS Pricing API for the selected region.
+1. Calculate sustainable concurrency per vCPU (based on runtime, memory, and workload type)
+2. Determine function memory allocation (minimum 2,048 MB for LMI)
+3. Calculate environments needed for peak concurrency
+4. Pack environments onto instances (accounting for 1 vCPU + 1 GB OS overhead)
+5. Enforce minimum 3 instances for AZ resiliency
+6. Select the cheapest instance type from c7g, m7g, and r7g families
+
+The estimate compares Standard Lambda vs LMI across four pricing tiers:
+
+| Tier | LMI/EC2 Discount | Lambda Discount |
+|------|------------------|-----------------|
+| On-Demand | 0% | 0% |
+| Compute Savings Plan (1yr) | 50% | 17% |
+| EC2 Instance Savings Plan | 72% | 0% |
+| Reserved Instances (3yr) | 75% | 0% |
+
+**Note:** The 15% LMI management fee is always calculated on the On-Demand EC2 price, regardless of savings plan discounts.
 
 ## Memory Override
 
-By default, the tool uses the function's configured `MemorySize` for capacity planning. This is the *allocated ceiling*, not actual runtime usage. For more accurate estimates, provide the actual memory your function uses:
+By default, the tool uses the function's configured `MemorySize` for capacity planning. This is the *allocated ceiling*, not actual runtime usage — a function configured at 1024 MB may only use 200 MB per invocation.
+
+Using the actual memory improves estimate accuracy because:
+- Lower memory per execution → more invocations fit per vCPU → fewer LMI instances needed
+- The function memory allocation (min 2,048 MB) is calculated from `memory_per_exec × concurrency_per_vcpu`
 
 ```bash
-# If your function is configured at 1024 MB but only uses ~300 MB
-python lmi_candidate_finder.py --region us-east-1 --function my-func --memory-per-exec 300
+# Find actual memory usage from CloudWatch Logs
+# Look for "Max Memory Used" in REPORT lines
+aws logs filter-log-events --log-group-name /aws/lambda/my-func \
+    --filter-pattern "REPORT" --limit 10 \
+    --query 'events[].message' --output text | grep -oP 'Max Memory Used: \K\d+'
+
+# Use the actual value
+python lmi_candidate_finder.py --region us-east-1 --function my-func --memory-per-exec 200
 ```
 
-You can find actual memory usage in CloudWatch Logs (`REPORT` lines show `Max Memory Used`).
+## Examples
+
+### Scan all functions in a region
+```bash
+python lmi_candidate_finder.py --region us-east-1
+```
+
+### Multi-region scan
+```bash
+python lmi_candidate_finder.py --region us-east-1,us-west-2,eu-west-1
+```
+
+### Analyze a specific API gateway backend
+```bash
+python lmi_candidate_finder.py --region us-east-1 \
+    --function payment-api \
+    --memory-per-exec 256 \
+    --workload-type io-heavy
+```
+
+### Analyze a CPU-intensive data processor
+```bash
+python lmi_candidate_finder.py --region us-east-1 \
+    --function etl-processor \
+    --memory-per-exec 512 \
+    --workload-type cpu-heavy
+```
+
+### JSON output for CI/CD or dashboards
+```bash
+python lmi_candidate_finder.py --region us-east-1 --json | \
+    jq '[.[] | select(.skipped != true and .lmi_score >= 60)]'
+```
+
+### Lower the volume threshold for dev/test accounts
+```bash
+python lmi_candidate_finder.py --region us-east-1 --min-invocations 100000
+```
 
 ## Testing
 
-Deploy the included test function and load test it:
+### Unit tests (no AWS credentials required)
+
+The test suite validates scoring, disqualifiers, capacity formula, workload types, and memory override using mock CloudWatch data:
+
+```bash
+python test_lmi_candidate_finder.py
+```
+
+Test scenarios:
+| Test | Scenario | Expected |
+|------|----------|----------|
+| 1 | High-volume Java API, 50M inv/month, 2s duration, 100 concurrency, provisioned | STRONG (score 100) |
+| 2 | Python 3.12, 2M inv/month, 150ms duration, 8 concurrency | MODERATE (score ~37) |
+| 3 | High volume but peak concurrency = 1 | Skipped (low concurrency) |
+| 4 | High volume + concurrency but only 10% hours active | Skipped (irregular traffic) |
+| 5 | Ruby, Go, custom runtimes | Filtered (returns None) |
+| 6 | Capacity formula cross-check against lmi_calculator.py | Exact match |
+| 7 | Same function as io-heavy vs cpu-heavy | Same score, different cost |
+| 8 | Memory override (2048 configured, 200 actual) | Better packing with override |
+| 9 | Low concurrency + provisioned concurrency | Not skipped (bypass) |
+
+### Integration test with a real Lambda function
 
 ```bash
 cd test-function
 sam build && sam deploy --guided
 
-# Generate traffic
+# Generate traffic (300 invocations, 15 concurrent)
 cd ..
-./load-test.sh 500 10
+./load-test.sh 300 15
 
-# Wait 2-3 min for CloudWatch, then scan
+# Wait 2-3 min for CloudWatch metrics, then scan
 python lmi_candidate_finder.py --region us-east-1 --days 1 --min-invocations 1000
+
+# Clean up
+aws cloudformation delete-stack --stack-name lmi-candidate-test
+```
+
+## Architecture
+
+```
+lmi-candidate-finder/
+├── lmi_candidate_finder.py          # Main tool (single file, no dependencies beyond boto3)
+├── test_lmi_candidate_finder.py     # Unit tests with mock data (49 checks)
+├── load-test.sh                     # Bash script for concurrent Lambda invocations
+├── README.md                        # This file
+└── test-function/
+    ├── app.py                       # CPU-bound test Lambda (SHA-256 hash chaining)
+    ├── template.yaml                # SAM template (arm64, Python 3.13, 512 MB)
+    └── .gitignore                   # Excludes .aws-sam/ build artifacts
+```
+
+### Data flow
+
+```
+AWS Pricing API ──→ EC2 + Lambda prices (per region)
+                         │
+Lambda ListFunctions ──→ Function configs (runtime, memory, arch)
+                         │
+CloudWatch Metrics ────→ Invocations, Duration, Concurrency, Throttles
+                         │
+                    ┌────▼────┐
+                    │ Filter  │ → Skip: unsupported runtime, low volume,
+                    │         │        low concurrency, irregular traffic
+                    └────┬────┘
+                    ┌────▼────┐
+                    │  Score  │ → 0-100 based on volume, duration,
+                    │         │   concurrency, memory, provisioned, throttles
+                    └────┬────┘
+                    ┌────▼────┐
+                    │Estimate │ → LMI capacity formula: instance type,
+                    │         │   count, packing, cost across 4 tiers
+                    └────┬────┘
+                    ┌────▼────┐
+                    │ Report  │ → Terminal output or JSON
+                    └─────────┘
 ```
 
 ## Requirements
@@ -115,3 +273,13 @@ python lmi_candidate_finder.py --region us-east-1 --days 1 --min-invocations 100
   - `lambda:ListFunctions`, `lambda:GetFunction`, `lambda:ListProvisionedConcurrencyConfigs`
   - `cloudwatch:GetMetricStatistics`
   - `pricing:GetProducts` (read-only, fetches public pricing data)
+
+## Supported Regions
+
+Pricing lookup supports: us-east-1, us-east-2, us-west-1, us-west-2, eu-west-1, eu-west-2, eu-west-3, eu-central-1, eu-north-1, ap-northeast-1, ap-southeast-1, ap-southeast-2, ap-south-1, sa-east-1, ca-central-1.
+
+LMI is currently available in: us-east-1, us-east-2, us-west-2, ap-northeast-1, eu-west-1. The tool can scan functions in any region, but LMI deployment is limited to these regions.
+
+## License
+
+This tool is part of the [sample-aws-lambda-managed-instances](https://github.com/aws-samples/sample-aws-lambda-managed-instances) repository, licensed under MIT-0.
