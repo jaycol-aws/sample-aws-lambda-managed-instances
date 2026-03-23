@@ -1,22 +1,50 @@
 # LMI Candidate Finder
 
-Scans Lambda functions in your AWS account and identifies candidates for [Lambda Managed Instances](https://aws.amazon.com/lambda/lambda-managed-instances/) based on invocation patterns, duration, memory, and runtime compatibility. Produces per-function savings estimates across multiple pricing tiers.
+Scans Lambda functions in your AWS account and identifies candidates for [Lambda Managed Instances](https://aws.amazon.com/lambda/lambda-managed-instances/) based on invocation patterns, duration, concurrency, memory, and runtime compatibility. Produces per-function savings estimates using live pricing from the AWS Pricing API.
 
 ## Quick Start
 
 ```bash
-# Scan your account
+# Scan all functions in a region
 python lmi_candidate_finder.py --region us-east-1
 
-# Use a specific profile
-python lmi_candidate_finder.py --region us-east-1 --profile my-profile
+# Scan multiple regions
+python lmi_candidate_finder.py --region us-east-1,us-west-2,eu-west-1
 
-# Analyze last 7 days with lower threshold
-python lmi_candidate_finder.py --region us-east-1 --days 7 --min-invocations 100000
+# Analyze a single function with known memory usage
+python lmi_candidate_finder.py --region us-east-1 --function my-api \
+    --memory-per-exec 200 --workload-type balanced
+
+# CPU-heavy Java function
+python lmi_candidate_finder.py --region us-east-1 --function my-processor \
+    --memory-per-exec 512 --workload-type cpu-heavy
 
 # JSON output for programmatic use
 python lmi_candidate_finder.py --region us-east-1 --json
 ```
+
+## Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--region` | us-east-1 | AWS region(s), comma-separated for multi-region scan |
+| `--function` | *(all)* | Analyze a single function by name |
+| `--memory-per-exec` | *(configured)* | Actual memory used per execution in MB |
+| `--workload-type` | io-heavy | CPU profile: `io-heavy`, `balanced`, or `cpu-heavy` |
+| `--days` | 14 | Days of CloudWatch data to analyze |
+| `--min-invocations` | 1,000,000 | Minimum monthly invocations to consider |
+| `--profile` | *(default)* | AWS CLI profile name |
+| `--json` | false | Output as JSON |
+
+## Workload Types
+
+The workload type determines how many concurrent invocations can sustainably run per vCPU:
+
+| Type | CPU per Invocation | Concurrency per vCPU | Best For |
+|------|-------------------|---------------------|----------|
+| `io-heavy` | 12.5% | Up to 8 | API proxies, queue consumers, DB queries |
+| `balanced` | 25% | Up to 4 | Mixed IO and compute, web backends |
+| `cpu-heavy` | 50% | Up to 2 | Data processing, ML inference, image/video encoding |
 
 ## What It Checks
 
@@ -30,6 +58,12 @@ python lmi_candidate_finder.py --region us-east-1 --json
 | Throttle history | 5 pts | Throttling suggests capacity constraints LMI can address |
 | Runtime compatibility | -5 pts | Penalty if runtime upgrade needed |
 
+## Disqualifiers
+
+Functions are automatically skipped (not scored) if they have:
+- **Low/no concurrency** — peak concurrent executions < 2 (LMI needs sustained concurrent load)
+- **Irregular traffic** — active in fewer than 25% of hours in the analysis period (LMI doesn't scale to zero)
+
 ## Scoring
 
 - 🟢 **STRONG** (60+): High-confidence LMI candidate
@@ -42,24 +76,20 @@ python lmi_candidate_finder.py --region us-east-1 --json
 For each candidate, the finder runs the LMI capacity formula to determine:
 - Best instance type (from c7g, m7g, r7g families)
 - Instance count, environments per instance, concurrency per environment
-- Cost comparison across four pricing tiers:
+- Cost comparison across four pricing tiers (On-Demand, Compute SP, EC2 SP, 3yr RI)
 
-| Tier | LMI Discount | Lambda Discount |
-|------|-------------|-----------------|
-| On-Demand | 0% | 0% |
-| Compute Savings Plan (1yr) | 50% | 17% |
-| EC2 Instance Savings Plan | 72% | 0% |
-| Reserved Instances (3yr) | 75% | 0% |
+Pricing is fetched live from the AWS Pricing API for the selected region.
 
-The estimate uses the same capacity formula as the [LMI Pricing Calculator](https://aws-samples.github.io/sample-aws-lambda-managed-instances/), including AZ resiliency minimums and instance packing efficiency.
+## Memory Override
 
-**Note:** These are estimates based on CloudWatch averages. Actual savings depend on traffic patterns, memory profiling, and workload characteristics. Use the Pricing Calculator for detailed capacity planning.
+By default, the tool uses the function's configured `MemorySize` for capacity planning. This is the *allocated ceiling*, not actual runtime usage. For more accurate estimates, provide the actual memory your function uses:
 
-## Supported Runtimes
+```bash
+# If your function is configured at 1024 MB but only uses ~300 MB
+python lmi_candidate_finder.py --region us-east-1 --function my-func --memory-per-exec 300
+```
 
-LMI requires: Python 3.13+, Node.js 22+, Java 21+, .NET 8+
-
-The finder also flags functions on older runtimes that could be upgraded.
+You can find actual memory usage in CloudWatch Logs (`REPORT` lines show `Max Memory Used`).
 
 ## Testing
 
@@ -81,12 +111,7 @@ python lmi_candidate_finder.py --region us-east-1 --days 1 --min-invocations 100
 
 - Python 3.9+
 - boto3 (`pip install boto3`)
-- AWS credentials with `lambda:ListFunctions`, `lambda:ListProvisionedConcurrencyConfigs`, `cloudwatch:GetMetricStatistics` permissions
-
-## Known Limitations
-
-- **Memory estimate uses configured, not actual usage.** Lambda's `MemorySize` is the allocated ceiling, not runtime consumption. A function configured at 512 MB may only use 100 MB, which would improve LMI packing efficiency. For accurate estimates, profile actual memory usage with Lambda Insights.
-- **No workload type inference.** The capacity formula assumes IO-heavy workloads (highest concurrency per vCPU). CPU-bound functions will achieve lower concurrency in practice. Use the Pricing Calculator to model specific workload types.
-- **Pricing is us-east-1 only.** EC2 and Lambda prices vary by region. Estimates for other regions may differ.
-- **Single region per run.** Run the tool once per region, or script a multi-region wrapper.
-- **API call volume scales linearly.** ~5 API calls per function. Accounts with 1000+ functions may take several minutes.
+- AWS credentials with permissions for:
+  - `lambda:ListFunctions`, `lambda:GetFunction`, `lambda:ListProvisionedConcurrencyConfigs`
+  - `cloudwatch:GetMetricStatistics`
+  - `pricing:GetProducts` (read-only, fetches public pricing data)
