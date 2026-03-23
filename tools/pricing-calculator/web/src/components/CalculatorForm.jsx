@@ -1,3 +1,6 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
+
 import { useState } from 'react';
 import {
   RUNTIME_LIMITS, INSTANCE_TYPES, SAVINGS_PLANS,

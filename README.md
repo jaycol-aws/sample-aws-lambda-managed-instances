@@ -21,10 +21,13 @@ AWS Lambda Managed Instances (LMI) runs Lambda functions on longer-lived AWS-man
 ### Tools
 
 - **[LMI Pricing Calculator](https://aws-samples.github.io/sample-aws-lambda-managed-instances/)** - Interactive cost calculator for comparing AWS Lambda Managed Instances pricing
+- **[LMI Scheduler](./tools/scheduler/README.md)** - Schedule-driven cost optimization for LMI capacity providers
+
 
 ## Getting Started
 
 Each example includes:
+
 - Complete deployment instructions using AWS SAM
 - Architecture diagrams and design patterns
 - Performance benchmarks and cost analysis

@@ -1,3 +1,6 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
+
 import { useMemo } from 'react';
 import { calcLmiCost, calcStandardLambdaCost, calcEc2Cost } from '../utils/calculator';
 import './CostComparisonChart.css';
