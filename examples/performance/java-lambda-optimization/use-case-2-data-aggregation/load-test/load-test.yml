@@ -1,0 +1,27 @@
+config:
+  target: "{{ $processEnvironment.API_ENDPOINT }}"
+  phases:
+    - name: "Cold Burst"
+      duration: 30
+      arrivalRate: 30
+    - name: "Warmup"
+      duration: 120
+      arrivalRate: 50
+    - name: "Sustained Load"
+      duration: 600
+      arrivalRate: 50
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+scenarios:
+  - name: "Aggregate Sensor Data"
+    flow:
+      - post:
+          url: "/"
+          json:
+            deviceId: "DEVICE-{{ $randomNumber(1, 20) }}"
+            startTime: "2026-01-01T00:00:00Z"
+            endTime: "2026-01-31T23:59:59Z"
+          expect:
+            - statusCode: 200

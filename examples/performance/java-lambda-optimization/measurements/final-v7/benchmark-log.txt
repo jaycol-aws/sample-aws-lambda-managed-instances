@@ -1,0 +1,274 @@
+╔═══════════════════════════════════════════════════════════════╗
+║  LMI Blog Final Benchmark — v7                              ║
+║  UCs: 1 2 3  Modes: standard snapstart native lmi
+║  Runs: 10                                                   ║
+║  Traffic: 500 warmup + 2000 measure @ 15c 30qps  ║
+║  Payloads: deterministic (ACCT-1, DEVICE-1, CUST-1)         ║
+║  Output: measurements/final-v7/                             ║
+╚═══════════════════════════════════════════════════════════════╝
+
+━━━ Run 1 of 10 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ▶ UC1 standard run 1/10 → lmi-blog-pdf-standard
+    p50=0.2500s p99=0.4912s max=14.1616s 200s=1995
+  ▶ UC1 snapstart run 1/10 → lmi-blog-pdf-snapstart
+    p50=0.1857s p99=0.4423s max=3.1452s 200s=1995
+  ▶ UC1 native run 1/10 → lmi-blog-pdf-native
+    p50=0.1763s p99=0.4096s max=2.0478s 200s=1995
+  ▶ UC1 lmi run 1/10 → lmi-blog-pdf-lmi-v2
+    p50=0.1342s p99=0.3507s max=0.4343s 200s=1984
+  ▶ UC2 standard run 1/10 → lmi-blog-etl-standard
+    p50=0.3180s p99=3.1282s max=9.0608s 200s=1988
+  ▶ UC2 snapstart run 1/10 → lmi-blog-etl-snapstart
+    p50=0.3069s p99=2.5593s max=5.5212s 200s=1992
+  ▶ UC2 native run 1/10 → lmi-blog-etl-native
+    p50=0.2846s p99=2.2037s max=5.2440s 200s=1987
+  ▶ UC2 lmi run 1/10 → lmi-blog-etl-lmi
+    p50=0.2458s p99=1.4805s max=3.8369s 200s=1995
+  ▶ UC3 standard run 1/10 → lmi-blog-api-standard
+    p50=0.1336s p99=0.3679s max=8.0987s 200s=1995
+  ▶ UC3 snapstart run 1/10 → lmi-blog-api-snapstart
+    p50=0.1203s p99=0.3686s max=1.2923s 200s=1995
+  ▶ UC3 native run 1/10 → lmi-blog-api-native
+    p50=0.1215s p99=0.4057s max=0.6391s 200s=1995
+  ▶ UC3 lmi run 1/10 → lmi-blog-api-lmi
+    p50=0.1158s p99=0.3155s max=0.4425s 200s=1995
+  ⏳ 10s cooldown between runs...
+━━━ Run 2 of 10 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ▶ UC1 standard run 2/10 → lmi-blog-pdf-standard
+    p50=0.2316s p99=0.4788s max=13.9343s 200s=1995
+  ▶ UC1 snapstart run 2/10 → lmi-blog-pdf-snapstart
+    p50=0.1864s p99=0.4407s max=2.8809s 200s=1995
+  ▶ UC1 native run 2/10 → lmi-blog-pdf-native
+    p50=0.1469s p99=0.3640s max=1.8283s 200s=1995
+  ▶ UC1 lmi run 2/10 → lmi-blog-pdf-lmi-v2
+    p50=0.1411s p99=0.3926s max=0.4925s 200s=1984
+  ▶ UC2 standard run 2/10 → lmi-blog-etl-standard
+    p50=0.3175s p99=2.9130s max=9.2598s 200s=1991
+  ▶ UC2 snapstart run 2/10 → lmi-blog-etl-snapstart
+    p50=0.3063s p99=2.6829s max=4.7672s 200s=1992
+  ▶ UC2 native run 2/10 → lmi-blog-etl-native
+    p50=0.2266s p99=1.6639s max=3.6261s 200s=1419
+  ▶ UC2 lmi run 2/10 → lmi-blog-etl-lmi
+    p50=0.2686s p99=1.5483s max=3.4779s 200s=1994
+  ▶ UC3 standard run 2/10 → lmi-blog-api-standard
+    p50=0.1286s p99=0.3822s max=7.9580s 200s=1995
+  ▶ UC3 snapstart run 2/10 → lmi-blog-api-snapstart
+    p50=0.1218s p99=0.3461s max=1.5958s 200s=1995
+  ▶ UC3 native run 2/10 → lmi-blog-api-native
+    p50=0.1184s p99=0.3250s max=1.5287s 200s=1995
+  ▶ UC3 lmi run 2/10 → lmi-blog-api-lmi
+    p50=0.1154s p99=0.3181s max=0.3830s 200s=1995
+  ⏳ 10s cooldown between runs...
+━━━ Run 3 of 10 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ▶ UC1 standard run 3/10 → lmi-blog-pdf-standard
+    p50=0.1951s p99=0.4890s max=13.7282s 200s=1995
+  ▶ UC1 snapstart run 3/10 → lmi-blog-pdf-snapstart
+    p50=0.1781s p99=0.4196s max=2.8922s 200s=1995
+  ▶ UC1 native run 3/10 → lmi-blog-pdf-native
+    p50=0.1512s p99=0.3694s max=2.1588s 200s=1995
+  ▶ UC1 lmi run 3/10 → lmi-blog-pdf-lmi-v2
+    p50=0.1312s p99=0.3329s max=0.4004s 200s=1979
+  ▶ UC2 standard run 3/10 → lmi-blog-etl-standard
+    p50=0.3224s p99=3.2993s max=11.6583s 200s=1991
+  ▶ UC2 snapstart run 3/10 → lmi-blog-etl-snapstart
+    p50=0.2997s p99=2.2464s max=4.4051s 200s=1993
+  ▶ UC2 native run 3/10 → lmi-blog-etl-native
+    p50=0.2979s p99=1.9832s max=3.8384s 200s=1989
+  ▶ UC2 lmi run 3/10 → lmi-blog-etl-lmi
+    p50=0.2679s p99=1.6237s max=4.0488s 200s=1993
+  ▶ UC3 standard run 3/10 → lmi-blog-api-standard
+    p50=0.1394s p99=0.3720s max=8.0915s 200s=1995
+  ▶ UC3 snapstart run 3/10 → lmi-blog-api-snapstart
+    p50=0.1212s p99=0.3316s max=1.3708s 200s=1995
+  ▶ UC3 native run 3/10 → lmi-blog-api-native
+    p50=0.1151s p99=0.3389s max=1.5207s 200s=1382
+  ▶ UC3 lmi run 3/10 → lmi-blog-api-lmi
+    p50=0.1115s p99=0.3094s max=0.3735s 200s=1995
+  ⏳ 10s cooldown between runs...
+━━━ Run 4 of 10 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ▶ UC1 standard run 4/10 → lmi-blog-pdf-standard
+    p50=0.2434s p99=0.4640s max=14.2979s 200s=1995
+  ▶ UC1 snapstart run 4/10 → lmi-blog-pdf-snapstart
+    p50=0.2008s p99=0.4216s max=3.0181s 200s=1995
+  ▶ UC1 native run 4/10 → lmi-blog-pdf-native
+    p50=0.1569s p99=0.3686s max=1.5073s 200s=1995
+  ▶ UC1 lmi run 4/10 → lmi-blog-pdf-lmi-v2
+    p50=0.1335s p99=0.3408s max=0.4103s 200s=1982
+  ▶ UC2 standard run 4/10 → lmi-blog-etl-standard
+    p50=0.3187s p99=2.9360s max=11.2927s 200s=1989
+  ▶ UC2 snapstart run 4/10 → lmi-blog-etl-snapstart
+    p50=0.3039s p99=2.7080s max=3.6448s 200s=1989
+  ▶ UC2 native run 4/10 → lmi-blog-etl-native
+    p50=0.2946s p99=2.3202s max=4.9953s 200s=1991
+  ▶ UC2 lmi run 4/10 → lmi-blog-etl-lmi
+    p50=0.2687s p99=1.6218s max=3.0721s 200s=1995
+  ▶ UC3 standard run 4/10 → lmi-blog-api-standard
+    p50=0.1313s p99=0.3751s max=7.7248s 200s=1995
+  ▶ UC3 snapstart run 4/10 → lmi-blog-api-snapstart
+    p50=0.1232s p99=0.3445s max=1.3569s 200s=1995
+  ▶ UC3 native run 4/10 → lmi-blog-api-native
+    p50=0.1201s p99=0.3318s max=1.6934s 200s=1995
+  ▶ UC3 lmi run 4/10 → lmi-blog-api-lmi
+    p50=0.1093s p99=0.3153s max=0.3809s 200s=[200]
+1995
+  ⏳ 10s cooldown between runs...
+━━━ Run 5 of 10 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ▶ UC1 standard run 5/10 → lmi-blog-pdf-standard
+    p50=0.2282s p99=0.4654s max=13.4324s 200s=1995
+  ▶ UC1 snapstart run 5/10 → lmi-blog-pdf-snapstart
+    p50=0.2050s p99=0.4138s max=2.7913s 200s=1995
+  ▶ UC1 native run 5/10 → lmi-blog-pdf-native
+    p50=0.1527s p99=0.3686s max=2.0090s 200s=1995
+  ▶ UC1 lmi run 5/10 → lmi-blog-pdf-lmi-v2
+    p50=0.1329s p99=0.3298s max=0.4667s 200s=1990
+  ▶ UC2 standard run 5/10 → lmi-blog-etl-standard
+    p50=0.3179s p99=3.3238s max=9.2909s 200s=1990
+  ▶ UC2 snapstart run 5/10 → lmi-blog-etl-snapstart
+    p50=0.3036s p99=2.6793s max=3.8462s 200s=1992
+  ▶ UC2 native run 5/10 → lmi-blog-etl-native
+    p50=0.2415s p99=2.5307s max=4.0753s 200s=1991
+  ▶ UC2 lmi run 5/10 → lmi-blog-etl-lmi
+    p50=0.2720s p99=1.5053s max=3.5591s 200s=1995
+  ▶ UC3 standard run 5/10 → lmi-blog-api-standard
+    p50=0.1433s p99=0.4027s max=8.2754s 200s=1995
+  ▶ UC3 snapstart run 5/10 → lmi-blog-api-snapstart
+    p50=0.1237s p99=0.3430s max=1.5159s 200s=1995
+  ▶ UC3 native run 5/10 → lmi-blog-api-native
+    p50=0.1177s p99=0.3270s max=1.3713s 200s=1995
+  ▶ UC3 lmi run 5/10 → lmi-blog-api-lmi
+    p50=0.1081s p99=0.3056s max=0.3516s 200s=1995
+  ⏳ 10s cooldown between runs...
+━━━ Run 6 of 10 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ▶ UC1 standard run 6/10 → lmi-blog-pdf-standard
+    p50=0.2224s p99=0.4530s max=14.2190s 200s=1995
+  ▶ UC1 snapstart run 6/10 → lmi-blog-pdf-snapstart
+    p50=0.1862s p99=0.4416s max=2.7857s 200s=1995
+  ▶ UC1 native run 6/10 → lmi-blog-pdf-native
+    p50=0.1525s p99=0.3645s max=1.5739s 200s=1995
+  ▶ UC1 lmi run 6/10 → lmi-blog-pdf-lmi-v2
+    p50=0.1384s p99=0.3377s max=0.7243s 200s=1989
+  ▶ UC2 standard run 6/10 → lmi-blog-etl-standard
+    p50=0.3176s p99=3.0265s max=9.2793s 200s=1990
+  ▶ UC2 snapstart run 6/10 → lmi-blog-etl-snapstart
+    p50=0.3052s p99=2.5644s max=4.5127s 200s=1989
+  ▶ UC2 native run 6/10 → lmi-blog-etl-native
+    p50=0.2985s p99=1.8905s max=3.8735s 200s=1990
+  ▶ UC2 lmi run 6/10 → lmi-blog-etl-lmi
+    p50=0.2735s p99=2.0083s max=3.6486s 200s=1995
+  ▶ UC3 standard run 6/10 → lmi-blog-api-standard
+    p50=0.1305s p99=0.3589s max=7.6454s 200s=1995
+  ▶ UC3 snapstart run 6/10 → lmi-blog-api-snapstart
+    p50=0.1238s p99=0.3460s max=1.3113s 200s=1995
+  ▶ UC3 native run 6/10 → lmi-blog-api-native
+    p50=0.1176s p99=0.3264s max=1.8105s 200s=1995
+  ▶ UC3 lmi run 6/10 → lmi-blog-api-lmi
+    p50=0.1123s p99=0.3065s max=0.3870s 200s=1995
+  ⏳ 10s cooldown between runs...
+━━━ Run 7 of 10 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ▶ UC1 standard run 7/10 → lmi-blog-pdf-standard
+    p50=0.2355s p99=0.4617s max=14.0034s 200s=1995
+  ▶ UC1 snapstart run 7/10 → lmi-blog-pdf-snapstart
+    p50=0.1828s p99=0.4212s max=2.7628s 200s=1995
+  ▶ UC1 native run 7/10 → lmi-blog-pdf-native
+    p50=0.1518s p99=0.3723s max=1.8819s 200s=1891
+  ▶ UC1 lmi run 7/10 → lmi-blog-pdf-lmi-v2
+    p50=0.1470s p99=0.3720s max=0.5526s 200s=1988
+  ▶ UC2 standard run 7/10 → lmi-blog-etl-standard
+    p50=0.3227s p99=3.1282s max=10.9726s 200s=1991
+  ▶ UC2 snapstart run 7/10 → lmi-blog-etl-snapstart
+    p50=0.3078s p99=2.3098s max=4.2865s 200s=1990
+  ▶ UC2 native run 7/10 → lmi-blog-etl-native
+    p50=0.2940s p99=2.6835s max=4.8107s 200s=1991
+  ▶ UC2 lmi run 7/10 → lmi-blog-etl-lmi
+    p50=0.2680s p99=1.5488s max=3.6584s 200s=1994
+  ▶ UC3 standard run 7/10 → lmi-blog-api-standard
+    p50=0.1398s p99=0.3698s max=8.5926s 200s=1995
+  ▶ UC3 snapstart run 7/10 → lmi-blog-api-snapstart
+    p50=0.1256s p99=0.3456s max=1.5927s 200s=1995
+  ▶ UC3 native run 7/10 → lmi-blog-api-native
+    p50=0.1188s p99=0.3330s max=1.0959s 200s=1995
+  ▶ UC3 lmi run 7/10 → lmi-blog-api-lmi
+    p50=0.1120s p99=0.3039s max=0.3887s 200s=1995
+  ⏳ 10s cooldown between runs...
+━━━ Run 8 of 10 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ▶ UC1 standard run 8/10 → lmi-blog-pdf-standard
+    p50=0.2131s p99=0.4800s max=14.8179s 200s=1995
+  ▶ UC1 snapstart run 8/10 → lmi-blog-pdf-snapstart
+    p50=0.2024s p99=0.4337s max=2.8407s 200s=1995
+  ▶ UC1 native run 8/10 → lmi-blog-pdf-native
+    p50=0.1526s p99=0.3665s max=1.5686s 200s=1995
+  ▶ UC1 lmi run 8/10 → lmi-blog-pdf-lmi-v2
+    p50=0.1330s p99=0.3368s max=0.5069s 200s=1991
+  ▶ UC2 standard run 8/10 → lmi-blog-etl-standard
+    p50=0.3155s p99=3.2509s max=9.8057s 200s=1990
+  ▶ UC2 snapstart run 8/10 → lmi-blog-etl-snapstart
+    p50=0.3027s p99=2.6195s max=3.8610s 200s=1991
+  ▶ UC2 native run 8/10 → lmi-blog-etl-native
+    p50=0.2913s p99=2.5169s max=6.0268s 200s=1988
+  ▶ UC2 lmi run 8/10 → lmi-blog-etl-lmi
+    p50=0.2693s p99=1.5373s max=3.6624s 200s=1995
+  ▶ UC3 standard run 8/10 → lmi-blog-api-standard
+    p50=0.1262s p99=0.3470s max=7.6220s 200s=1995
+  ▶ UC3 snapstart run 8/10 → lmi-blog-api-snapstart
+    p50=0.1194s p99=0.3360s max=1.3710s 200s=1995
+  ▶ UC3 native run 8/10 → lmi-blog-api-native
+    p50=0.1163s p99=0.3288s max=0.8300s 200s=1995
+  ▶ UC3 lmi run 8/10 → lmi-blog-api-lmi
+    p50=0.1090s p99=0.2985s max=0.4021s 200s=1995
+  ⏳ 10s cooldown between runs...
+━━━ Run 9 of 10 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ▶ UC1 standard run 9/10 → lmi-blog-pdf-standard
+    p50=0.2162s p99=0.4523s max=13.0801s 200s=1995
+  ▶ UC1 snapstart run 9/10 → lmi-blog-pdf-snapstart
+    p50=0.1821s p99=0.4261s max=2.6791s 200s=1995
+  ▶ UC1 native run 9/10 → lmi-blog-pdf-native
+    p50=0.1470s p99=0.4027s max=1.7719s 200s=1995
+  ▶ UC1 lmi run 9/10 → lmi-blog-pdf-lmi-v2
+    p50=0.1371s p99=0.3416s max=0.5063s 200s=1986
+  ▶ UC2 standard run 9/10 → lmi-blog-etl-standard
+    p50=0.3138s p99=1.8827s max=9.0418s 200s=1994
+  ▶ UC2 snapstart run 9/10 → lmi-blog-etl-snapstart
+    p50=0.3073s p99=2.4821s max=5.2268s 200s=1988
+  ▶ UC2 native run 9/10 → lmi-blog-etl-native
+    p50=0.2920s p99=1.8277s max=3.4216s 200s=1989
+  ▶ UC2 lmi run 9/10 → lmi-blog-etl-lmi
+    p50=0.2665s p99=1.5259s max=3.2321s 200s=1995
+  ▶ UC3 standard run 9/10 → lmi-blog-api-standard
+    p50=0.1279s p99=0.3497s max=8.1424s 200s=1995
+  ▶ UC3 snapstart run 9/10 → lmi-blog-api-snapstart
+    p50=0.1220s p99=0.3292s max=1.3429s 200s=1995
+  ▶ UC3 native run 9/10 → lmi-blog-api-native
+    p50=0.1176s p99=0.3262s max=1.8430s 200s=1995
+  ▶ UC3 lmi run 9/10 → lmi-blog-api-lmi
+    p50=0.1076s p99=0.3022s max=0.3639s 200s=1995
+  ⏳ 10s cooldown between runs...
+━━━ Run 10 of 10 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ▶ UC1 standard run 10/10 → lmi-blog-pdf-standard
+    p50=0.2543s p99=0.4725s max=13.5226s 200s=1995
+  ▶ UC1 snapstart run 10/10 → lmi-blog-pdf-snapstart
+    p50=0.1804s p99=0.4359s max=2.7882s 200s=1995
+  ▶ UC1 native run 10/10 → lmi-blog-pdf-native
+    p50=0.1523s p99=0.3604s max=1.8808s 200s=1995
+  ▶ UC1 lmi run 10/10 → lmi-blog-pdf-lmi-v2
+    p50=0.1345s p99=0.3198s max=0.3759s 200s=1983
+  ▶ UC2 standard run 10/10 → lmi-blog-etl-standard
+    p50=0.3172s p99=2.9152s max=9.5268s 200s=1993
+  ▶ UC2 snapstart run 10/10 → lmi-blog-etl-snapstart
+    p50=0.3021s p99=1.8128s max=4.4006s 200s=1994
+  ▶ UC2 native run 10/10 → lmi-blog-etl-native
+    p50=0.2279s p99=1.7547s max=3.3716s 200s=1603
+  ▶ UC2 lmi run 10/10 → lmi-blog-etl-lmi
+    p50=0.2038s p99=1.4126s max=3.1720s 200s=1995
+  ▶ UC3 standard run 10/10 → lmi-blog-api-standard
+    p50=0.1272s p99=0.3609s max=7.6258s 200s=1995
+  ▶ UC3 snapstart run 10/10 → lmi-blog-api-snapstart
+    p50=0.1209s p99=0.3480s max=0.6257s 200s=1995
+  ▶ UC3 native run 10/10 → lmi-blog-api-native
+    p50=0.1169s p99=0.3233s max=0.9902s 200s=1995
+  ▶ UC3 lmi run 10/10 → lmi-blog-api-lmi
+    p50=0.1078s p99=0.2965s max=0.3841s 200s=1995
+
+═══════════════════════════════════════════════════════════════
+  Complete! Results in: /Users/jaycol/tam-work/projects/lmi-blog-series/java-blog/shared/scripts/../measurements/final-v7/
+  Files: 120 measurement files
+═══════════════════════════════════════════════════════════════

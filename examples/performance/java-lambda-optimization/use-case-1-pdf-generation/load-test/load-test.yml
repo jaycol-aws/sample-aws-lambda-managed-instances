@@ -1,0 +1,33 @@
+config:
+  target: "{{ $processEnvironment.API_ENDPOINT }}"
+  phases:
+    # Phase 1: Cold burst — triggers cold starts
+    - name: "Cold Burst"
+      duration: 30
+      arrivalRate: 50
+    # Phase 2: Warmup — let JIT compile hot paths
+    - name: "Warmup"
+      duration: 120
+      arrivalRate: 100
+    # Phase 3: Sustained load — measure steady-state performance
+    - name: "Sustained Load"
+      duration: 600
+      arrivalRate: 100
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+scenarios:
+  - name: "Generate PDF Report"
+    flow:
+      - post:
+          url: "/"
+          json:
+            accountId: "ACCT-{{ $randomNumber(1, 50) }}"
+            startDate: "2026-01-01"
+            endDate: "2026-01-31"
+          capture:
+            - json: "$.generationTimeMs"
+              as: "genTime"
+          expect:
+            - statusCode: 200
