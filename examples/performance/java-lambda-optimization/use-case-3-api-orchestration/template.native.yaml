@@ -65,6 +65,9 @@ Resources:
         - AttributeName: orderId
           KeyType: RANGE
       BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
 
   ProductTable:
     Type: AWS::DynamoDB::Table
@@ -77,16 +80,21 @@ Resources:
         - AttributeName: productId
           KeyType: HASH
       BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
 
   NotificationQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${AWS::StackName}-notifications"
+      KmsMasterKeyId: alias/aws/sqs
 
   AlertTopic:
     Type: AWS::SNS::Topic
     Properties:
       TopicName: !Sub "${AWS::StackName}-alerts"
+      KmsMasterKeyId: alias/aws/sns
 
 Outputs:
   ApiEndpoint:

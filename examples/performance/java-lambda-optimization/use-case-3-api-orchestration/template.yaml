@@ -64,6 +64,7 @@ Resources:
     Properties:
       LogGroupName: !Sub "/aws/lambda/${ProcessOrderFunction}"
       RetentionInDays: 7
+      KmsKeyId: !GetAtt LogGroupKmsKey.Arn
 
   OrderTable:
     Type: AWS::DynamoDB::Table
@@ -80,6 +81,9 @@ Resources:
         - AttributeName: orderId
           KeyType: RANGE
       BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
 
   ProductTable:
     Type: AWS::DynamoDB::Table
@@ -92,16 +96,50 @@ Resources:
         - AttributeName: productId
           KeyType: HASH
       BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
 
   NotificationQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${AWS::StackName}-notifications"
+      KmsMasterKeyId: alias/aws/sqs
 
   AlertTopic:
     Type: AWS::SNS::Topic
     Properties:
       TopicName: !Sub "${AWS::StackName}-alerts"
+      KmsMasterKeyId: alias/aws/sns
+
+  LogGroupKmsKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: KMS key for CloudWatch Log Group encryption
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: EnableRootAccountAccess
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+          - Sid: AllowCloudWatchLogs
+            Effect: Allow
+            Principal:
+              Service: !Sub 'logs.${AWS::Region}.amazonaws.com'
+            Action:
+              - 'kms:Encrypt*'
+              - 'kms:Decrypt*'
+              - 'kms:ReEncrypt*'
+              - 'kms:GenerateDataKey*'
+              - 'kms:Describe*'
+            Resource: '*'
+            Condition:
+              ArnLike:
+                'kms:EncryptionContext:aws:logs:arn': !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*'
 
 Outputs:
   ApiEndpoint:

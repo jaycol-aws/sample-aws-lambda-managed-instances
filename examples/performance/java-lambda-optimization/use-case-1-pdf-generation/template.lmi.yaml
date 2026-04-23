@@ -94,6 +94,9 @@ Resources:
         - AttributeName: transactionId
           KeyType: RANGE
       BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
 
   ReportBucket:
     Type: AWS::S3::Bucket
@@ -104,6 +107,20 @@ Resources:
           - Id: CleanupOldReports
             Status: Enabled
             ExpirationInDays: 7
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionRule:
+              ServerSideEncryptionByDefault:
+                SSEAlgorithm: aws:kms
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LoggingConfiguration:
+        LogFilePrefix: access-logs/
+      VersioningConfiguration:
+        Status: Enabled
 
 Outputs:
   ApiEndpoint:

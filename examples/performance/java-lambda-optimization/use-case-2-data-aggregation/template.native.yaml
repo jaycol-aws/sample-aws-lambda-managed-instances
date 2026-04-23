@@ -59,6 +59,9 @@ Resources:
         - AttributeName: timestamp
           KeyType: RANGE
       BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
 
   OutputBucket:
     Type: AWS::S3::Bucket
@@ -69,6 +72,20 @@ Resources:
           - Id: Cleanup
             Status: Enabled
             ExpirationInDays: 7
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionRule:
+              ServerSideEncryptionByDefault:
+                SSEAlgorithm: aws:kms
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LoggingConfiguration:
+        LogFilePrefix: access-logs/
+      VersioningConfiguration:
+        Status: Enabled
 
 Outputs:
   ApiEndpoint:

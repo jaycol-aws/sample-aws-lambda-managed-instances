@@ -7,8 +7,8 @@ This repository provides a ready-to-deploy benchmark framework for comparing Spr
 | Mode | Description |
 |------|-------------|
 | **Standard AWS Lambda** | Default AWS Lambda execution — full JVM cold start on each new instance |
-| **AWS Lambda SnapStart** | CRaC-based snapshot restore — skips JVM boot and Spring context initialization |
-| **Lambda Managed Instances (LMI)** | Always-warm instances with persistent JIT compilation — no cold starts |
+| **Lambda SnapStart** | CRaC-based snapshot restore — skips JVM boot and Spring context initialization |
+| **AWS Lambda Managed Instances (LMI)** | Always-warm instances with persistent JIT compilation — no cold starts |
 | **GraalVM Native Image** | Ahead-of-time (AOT) compiled binary — sub-second initialization, no JVM |
 
 ## Use Cases
@@ -143,7 +143,7 @@ sam deploy --template-file template.native.yaml \
   --resolve-s3 --capabilities CAPABILITY_IAM
 ```
 
-> **Note:** The GraalVM Docker image (`graalvm-maven:21`) must be built first. See [GraalVM Build Setup](#graalvm-build-setup) below.
+> **Note:** The GraalVM Docker image (`graalvm-maven:21`) must be built first. See the following [GraalVM Build Setup](#graalvm-build-setup) section.
 
 ### Run Load Tests
 
@@ -185,7 +185,9 @@ docker build -t graalvm-maven:21 .
 
 ## Cleanup
 
-> **Important:** Each deployed stack creates billable AWS resources including AWS Lambda functions, Amazon DynamoDB tables (on-demand billing), Amazon S3 buckets, and Amazon API Gateway endpoints. LMI stacks additionally provision always-on instances that incur continuous charges. Delete all stacks promptly when you are done testing.
+> **Important:** Each deployed stack creates billable AWS resources including AWS Lambda functions, Amazon DynamoDB tables (on-demand billing), Amazon S3 buckets, and Amazon API Gateway REST APIs. LMI stacks additionally provision always-on instances that incur continuous charges. Delete all stacks promptly when you are done testing. The API Gateway REST APIs are deleted automatically when the CloudFormation stack is deleted.
+
+> **Cost Warning:** The benchmark scripts (`run-benchmark.sh`, `run-final-benchmark.sh`, etc.) execute a large number of Lambda invocations (thousands per run) that incur costs. Review the script parameters before running and monitor your AWS billing dashboard.
 
 > **Warning:** Some templates include Amazon S3 lifecycle rules that automatically delete objects after 7 days. If you need to retain generated output (PDFs, CSVs), download them before the lifecycle policy takes effect.
 
