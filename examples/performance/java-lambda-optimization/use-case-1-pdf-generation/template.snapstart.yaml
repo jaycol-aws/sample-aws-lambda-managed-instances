@@ -38,6 +38,16 @@ Resources:
     Properties:
       StageName: prod
       Name: lmi-blog-pdf-snapstart
+      TracingEnabled: true
+      AccessLogSetting:
+        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
+
+  ApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/apigateway/${AWS::StackName}'
+      RetentionInDays: 30
+      KmsKeyId: !GetAtt LogGroupKmsKey.Arn
 
   GenerateReportFunction:
     Type: AWS::Serverless::Function
@@ -83,6 +93,9 @@ Resources:
       SSESpecification:
         SSEEnabled: true
         SSEType: KMS
+        KMSMasterKeyId: alias/aws/dynamodb
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
 
   ReportBucket:
     Type: AWS::S3::Bucket
@@ -107,6 +120,8 @@ Resources:
         LogFilePrefix: access-logs/
       VersioningConfiguration:
         Status: Enabled
+      ObjectLockEnabled: true
+      AccessControl: Private
 
   LogGroupKmsKey:
     Type: AWS::KMS::Key

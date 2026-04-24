@@ -5,6 +5,7 @@ Description: >
 
 Globals:
   Function:
+    Tracing: Active
     CodeUri: target/data-aggregation-1.0.0-SNAPSHOT.jar
     Handler: org.springframework.cloud.function.adapter.aws.FunctionInvoker::handleRequest
     Runtime: java21
@@ -27,6 +28,16 @@ Resources:
     Properties:
       StageName: prod
       Name: lmi-blog-etl-snapstart
+      TracingEnabled: true
+      AccessLogSetting:
+        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
+
+  ApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/apigateway/${AWS::StackName}'
+      RetentionInDays: 30
+      KmsKeyId: !GetAtt LogGroupKmsKey.Arn
 
   AggregateDataFunction:
     Type: AWS::Serverless::Function
@@ -72,6 +83,9 @@ Resources:
       SSESpecification:
         SSEEnabled: true
         SSEType: KMS
+        KMSMasterKeyId: alias/aws/dynamodb
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
 
   OutputBucket:
     Type: AWS::S3::Bucket
@@ -96,6 +110,8 @@ Resources:
         LogFilePrefix: access-logs/
       VersioningConfiguration:
         Status: Enabled
+      ObjectLockEnabled: true
+      AccessControl: Private
 
   LogGroupKmsKey:
     Type: AWS::KMS::Key

@@ -35,6 +35,16 @@ Resources:
     Properties:
       StageName: prod
       Name: lmi-blog-api-standard
+      TracingEnabled: true
+      AccessLogSetting:
+        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
+
+  ApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/apigateway/${AWS::StackName}'
+      RetentionInDays: 30
+      KmsKeyId: !GetAtt LogGroupKmsKey.Arn
 
   ProcessOrderFunction:
     Type: AWS::Serverless::Function
@@ -84,6 +94,9 @@ Resources:
       SSESpecification:
         SSEEnabled: true
         SSEType: KMS
+        KMSMasterKeyId: alias/aws/dynamodb
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
 
   ProductTable:
     Type: AWS::DynamoDB::Table
@@ -99,6 +112,9 @@ Resources:
       SSESpecification:
         SSEEnabled: true
         SSEType: KMS
+        KMSMasterKeyId: alias/aws/dynamodb
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
 
   NotificationQueue:
     Type: AWS::SQS::Queue

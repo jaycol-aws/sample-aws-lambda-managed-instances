@@ -2,13 +2,13 @@
 
 ## Introduction
 
-This repository provides a ready-to-deploy benchmark framework for comparing Spring Boot 3.4 workloads on AWS Lambda across four deployment modes. It helps you evaluate cold-start behavior, warm-execution latency, and tail-latency characteristics so you can choose the deployment mode that fits your workload profile.
+This repository provides a ready-to-deploy benchmark framework for comparing Spring Boot 3.4 workloads on AWS Lambda across four deployment modes. It helps you evaluate cold-start behavior, warm-execution latency, and tail-latency characteristics (p50, p90, p99 — the latency at the 50th, 90th, and 99th percentile of requests) so you can choose the deployment mode that fits your workload profile.
 
 | Mode | Description |
 |------|-------------|
 | **Standard AWS Lambda** | Default AWS Lambda execution — full JVM cold start on each new instance |
 | **Lambda SnapStart** | CRaC-based snapshot restore — skips JVM boot and Spring context initialization |
-| **AWS Lambda Managed Instances (LMI)** | Always-warm instances with persistent JIT compilation — no cold starts |
+| **AWS Lambda Managed Instances (LMI)** | Always-warm instances with persistent JIT (Just-In-Time) compilation — no cold starts |
 | **GraalVM Native Image** | Ahead-of-time (AOT) compiled binary — sub-second initialization, no JVM |
 
 ## Use Cases
