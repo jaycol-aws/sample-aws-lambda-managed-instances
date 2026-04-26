@@ -1,0 +1,43 @@
+# Build artifacts
+target/
+*.class
+*.jar
+*.zip
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# SAM
+.aws-sam/
+samconfig.toml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Maven
+dependency-reduced-pom.xml
+
+# Native image build artifacts
+*.o
+*.d
+
+# Old measurement runs (keep final-v7 and consolidated results only)
+measurements/final/
+measurements/final-v2/
+measurements/final-v3/
+measurements/final-v4/
+measurements/final-v5/
+measurements/final-v6/
+measurements/uc*
+measurements/report-data.json
+
+# Shared measurements raw data (keep consolidated + report only)
+shared/measurements/final-v7/uc*.txt
+shared/measurements/final-v2/
+measurements/final-v7-data

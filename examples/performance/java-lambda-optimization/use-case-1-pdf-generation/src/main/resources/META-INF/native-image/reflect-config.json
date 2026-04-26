@@ -1,0 +1,5 @@
+[
+  {"name":"com.aws.lmi.pdf.model.TransactionRecord","allDeclaredConstructors":true,"allDeclaredMethods":true,"allDeclaredFields":true},
+  {"name":"com.aws.lmi.pdf.model.PdfRequest","allDeclaredConstructors":true,"allDeclaredMethods":true,"allDeclaredFields":true},
+  {"name":"com.aws.lmi.pdf.model.PdfResponse","allDeclaredConstructors":true,"allDeclaredMethods":true,"allDeclaredFields":true}
+]

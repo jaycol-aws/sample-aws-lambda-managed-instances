@@ -1,0 +1,168 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  LMI Blog — Use Case 1: PDF Report Generation (Standard Lambda)
+  CPU-intensive workload comparing JVM performance across deployment modes.
+
+Parameters:
+  MemorySize:
+    Type: Number
+    Default: 2048
+    AllowedValues: [512, 1024, 2048, 3008]
+    Description: >
+      Lambda memory allocation in MB. CPU scales proportionally.
+      Test multiple values to find optimal price-performance.
+
+Globals:
+  Function:
+    Tracing: Active
+    CodeUri: target/pdf-generation-1.0.0-SNAPSHOT.jar
+    Handler: org.springframework.cloud.function.adapter.aws.FunctionInvoker::handleRequest
+    Runtime: java21
+    Timeout: 60
+    MemorySize: !Ref MemorySize
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        TRANSACTION_TABLE_NAME: !Ref TransactionsTable
+        REPORT_BUCKET_NAME: !Ref ReportBucket
+        MAIN_CLASS: com.aws.lmi.pdf.PdfGenerationApplication
+        JAVA_TOOL_OPTIONS: >-
+          -XX:+TieredCompilation
+          -XX:+UseG1GC
+          -Xlog:gc:stderr:time,tags
+
+Resources:
+  ReportApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Name: !Sub "lmi-blog-pdf-standard-${MemorySize}mb"
+      TracingEnabled: true
+      AccessLogSetting:
+        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
+
+  ApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/apigateway/${AWS::StackName}'
+      RetentionInDays: 30
+      KmsKeyId: !GetAtt LogGroupKmsKey.Arn
+
+  GenerateReportFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Environment:
+        Variables:
+          SPRING_CLOUD_FUNCTION_DEFINITION: pdfGeneratorFunction
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref TransactionsTable
+        - S3CrudPolicy:
+            BucketName: !Ref ReportBucket
+      Events:
+        PostReport:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ReportApi
+            Path: /reports
+            Method: post
+
+  GenerateReportFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GenerateReportFunction}"
+      RetentionInDays: 7
+      KmsKeyId: !GetAtt LogGroupKmsKey.Arn
+
+  TransactionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${AWS::StackName}-transactions"
+      AttributeDefinitions:
+        - AttributeName: accountId
+          AttributeType: S
+        - AttributeName: transactionId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: accountId
+          KeyType: HASH
+        - AttributeName: transactionId
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+        SSEType: KMS
+        KMSMasterKeyId: alias/aws/dynamodb
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  ReportBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AWS::StackName}-reports-${AWS::AccountId}"
+      LifecycleConfiguration:
+        Rules:
+          - Id: CleanupOldReports
+            Status: Enabled
+            ExpirationInDays: 7
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionRule:
+              ServerSideEncryptionByDefault:
+                SSEAlgorithm: aws:kms
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LoggingConfiguration:
+        LogFilePrefix: access-logs/
+      VersioningConfiguration:
+        Status: Enabled
+      ObjectLockEnabled: true
+      AccessControl: Private
+
+  LogGroupKmsKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: KMS key for CloudWatch Log Group encryption
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: EnableRootAccountAccess
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+          - Sid: AllowCloudWatchLogs
+            Effect: Allow
+            Principal:
+              Service: !Sub 'logs.${AWS::Region}.amazonaws.com'
+            Action:
+              - 'kms:Encrypt*'
+              - 'kms:Decrypt*'
+              - 'kms:ReEncrypt*'
+              - 'kms:GenerateDataKey*'
+              - 'kms:Describe*'
+            Resource: '*'
+            Condition:
+              ArnLike:
+                'kms:EncryptionContext:aws:logs:arn': !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*'
+
+Outputs:
+  ApiEndpoint:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${ReportApi}.execute-api.${AWS::Region}.amazonaws.com/prod/reports"
+  TransactionsTableName:
+    Description: DynamoDB table name for seeding test data
+    Value: !Ref TransactionsTable
+  ReportBucketName:
+    Description: S3 bucket for generated PDFs
+    Value: !Ref ReportBucket
+  MemorySizeMB:
+    Description: Configured memory size
+    Value: !Ref MemorySize
