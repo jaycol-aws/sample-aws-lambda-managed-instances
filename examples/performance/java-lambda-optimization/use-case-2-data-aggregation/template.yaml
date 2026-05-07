@@ -30,7 +30,7 @@ Globals:
     Tracing: Active
     CodeUri: target/data-aggregation-1.0.0-SNAPSHOT.jar
     Handler: org.springframework.cloud.function.adapter.aws.FunctionInvoker::handleRequest
-    Runtime: java21
+    Runtime: java25
     Timeout: 120
     MemorySize: !Ref MemorySize
     Architectures: [x86_64]
@@ -49,16 +49,6 @@ Resources:
     Properties:
       StageName: prod
       Name: lmi-blog-etl-standard
-      TracingEnabled: true
-      AccessLogSetting:
-        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
-
-  ApiAccessLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub '/aws/apigateway/${AWS::StackName}'
-      RetentionInDays: 30
-      KmsKeyId: !GetAtt LogGroupKmsKey.Arn
 
   AggregateDataFunction:
     Type: AWS::Serverless::Function
@@ -84,7 +74,6 @@ Resources:
     Properties:
       LogGroupName: !Sub "/aws/lambda/${AggregateDataFunction}"
       RetentionInDays: 7
-      KmsKeyId: !GetAtt LogGroupKmsKey.Arn
 
   SensorTable:
     Type: AWS::DynamoDB::Table
@@ -101,12 +90,6 @@ Resources:
         - AttributeName: timestamp
           KeyType: RANGE
       BillingMode: PAY_PER_REQUEST
-      SSESpecification:
-        SSEEnabled: true
-        SSEType: KMS
-        KMSMasterKeyId: alias/aws/dynamodb
-      PointInTimeRecoverySpecification:
-        PointInTimeRecoveryEnabled: true
 
   OutputBucket:
     Type: AWS::S3::Bucket
@@ -117,51 +100,6 @@ Resources:
           - Id: Cleanup
             Status: Enabled
             ExpirationInDays: 7
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionRule:
-              ServerSideEncryptionByDefault:
-                SSEAlgorithm: aws:kms
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      LoggingConfiguration:
-        LogFilePrefix: access-logs/
-      VersioningConfiguration:
-        Status: Enabled
-      ObjectLockEnabled: true
-      AccessControl: Private
-
-  LogGroupKmsKey:
-    Type: AWS::KMS::Key
-    Properties:
-      Description: KMS key for CloudWatch Log Group encryption
-      EnableKeyRotation: true
-      KeyPolicy:
-        Version: '2012-10-17'
-        Statement:
-          - Sid: EnableRootAccountAccess
-            Effect: Allow
-            Principal:
-              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
-            Action: 'kms:*'
-            Resource: '*'
-          - Sid: AllowCloudWatchLogs
-            Effect: Allow
-            Principal:
-              Service: !Sub 'logs.${AWS::Region}.amazonaws.com'
-            Action:
-              - 'kms:Encrypt*'
-              - 'kms:Decrypt*'
-              - 'kms:ReEncrypt*'
-              - 'kms:GenerateDataKey*'
-              - 'kms:Describe*'
-            Resource: '*'
-            Condition:
-              ArnLike:
-                'kms:EncryptionContext:aws:logs:arn': !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*'
 
 Outputs:
   ApiEndpoint:

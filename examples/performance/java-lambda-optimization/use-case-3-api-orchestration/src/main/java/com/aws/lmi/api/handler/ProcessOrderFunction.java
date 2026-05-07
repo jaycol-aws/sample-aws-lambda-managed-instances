@@ -17,7 +17,7 @@ import com.amazonaws.xray.AWSXRay;
 import com.amazonaws.xray.entities.Subsegment;
 import com.aws.lmi.api.model.*;
 import com.aws.lmi.api.model.Schemas;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.crac.Context;
 import org.crac.Core;
 import org.crac.Resource;
