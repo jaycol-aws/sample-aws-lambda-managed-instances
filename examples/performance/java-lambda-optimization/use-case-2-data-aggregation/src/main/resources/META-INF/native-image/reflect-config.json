@@ -1,0 +1,6 @@
+[
+  {"name":"com.aws.lmi.etl.model.SensorReading","allDeclaredConstructors":true,"allDeclaredMethods":true,"allDeclaredFields":true},
+  {"name":"com.aws.lmi.etl.model.AggregationRequest","allDeclaredConstructors":true,"allDeclaredMethods":true,"allDeclaredFields":true},
+  {"name":"com.aws.lmi.etl.model.AggregationResponse","allDeclaredConstructors":true,"allDeclaredMethods":true,"allDeclaredFields":true},
+  {"name":"com.aws.lmi.etl.model.AggregationResponse$MetricSummary","allDeclaredConstructors":true,"allDeclaredMethods":true,"allDeclaredFields":true}
+]

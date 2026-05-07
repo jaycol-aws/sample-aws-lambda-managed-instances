@@ -1,0 +1,27 @@
+config:
+  target: "{{ $processEnvironment.API_ENDPOINT }}"
+  phases:
+    - name: "Cold Burst"
+      duration: 30
+      arrivalRate: 100
+    - name: "Warmup"
+      duration: 120
+      arrivalRate: 200
+    - name: "Sustained Load"
+      duration: 600
+      arrivalRate: 200
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+scenarios:
+  - name: "Process Order"
+    flow:
+      - post:
+          url: "/"
+          json:
+            customerId: "CUST-{{ $randomNumber(1000, 9999) }}"
+            productId: "PROD-{{ $randomNumber(1, 100) }}"
+            quantity: "{{ $randomNumber(1, 10) }}"
+          expect:
+            - statusCode: 200
