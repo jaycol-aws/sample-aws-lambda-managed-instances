@@ -1,0 +1,29 @@
+{
+  "app": "npx ts-node --prefer-ts-exts bin/iot-data-pipeline.ts",
+  "watch": {
+    "include": ["**"],
+    "exclude": [
+      "README.md",
+      "cdk*.json",
+      "**/*.d.ts",
+      "**/*.js",
+      "tsconfig.json",
+      "package*.json",
+      "yarn.lock",
+      "node_modules",
+      "build",
+      "lambda",
+      "flink",
+      "cdk.out"
+    ]
+  },
+  "context": {
+    "region": "us-east-1",
+    "environment": "dev",
+    "projectName": "iot-data-pipeline",
+    "costCenter": "iot-operations",
+    "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
+    "@aws-cdk/core:checkSecretUsage": true,
+    "@aws-cdk/core:target-partitions": ["aws"]
+  }
+}

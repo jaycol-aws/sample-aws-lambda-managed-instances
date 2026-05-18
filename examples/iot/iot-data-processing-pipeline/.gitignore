@@ -1,0 +1,27 @@
+# OS files
+.DS_Store
+
+*.js
+!jest.config.js
+*.d.ts
+node_modules
+build
+cdk.out
+
+# Flink build artifacts
+flink/target/
+flink/dependency-reduced-pom.xml
+
+# CDK asset staging
+.cdk.staging
+cdk.out.deploy/
+
+# CDK context cache (account-specific, auto-generated)
+cdk.context.json
+
+# IDE / tooling
+.vscode/
+.kiro/
+
+# Drafts
+blog-abstract.md
